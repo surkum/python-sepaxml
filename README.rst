@@ -43,7 +43,8 @@ Example:
         "batch": True,
         "creditor_id": "DE26ZZZ00000000000",  # supplied by your bank or financial authority
         "currency": "EUR",  # ISO 4217,
-        "payment_info_id": "DTGASDFADFAEFAEF-aee544fr46"
+        "payment_info_id": "DTGASDFADFAEFAEF-aee544fr46",
+        "msg_id": "DTGASDFADFAEFAEF",
         # "instrument": "B2B"  # - default is CORE (B2C)
     }
     sepa = SepaDD(config, schema="pain.008.001.02", clean=True)
@@ -80,6 +81,8 @@ Example:
         "IBAN": "NL50BANK1234567890",
         "BIC": "BANKNL2A",
         "batch": True,
+        "msg_id": "DTGASDFADFAEFAEF",
+        "payment_info_id": "DTGASDFADFAEFAEF-aee544fr46"
         # For non-SEPA transfers, set "domestic" to True, necessary e.g. for CH/LI
         "currency": "EUR",  # ISO 4217
     }
