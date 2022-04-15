@@ -19,7 +19,7 @@ class SepaPaymentInitn:
         self._batches = OrderedDict()  # Will contain the SEPA batches.
         self._batch_totals = OrderedDict()  # Will contain the total amount to debit per batch for checksum total.
         self.schema = schema
-        self.msg_id = config.get('msg_id',make_msg_id())
+        self.msg_id = config.get('msg_id',make_msg_id())[0:34]
         self.clean = clean
 
         config_result = self.check_config(config)
