@@ -20,6 +20,8 @@ class SepaPaymentInitn:
         self._batch_totals = OrderedDict()  # Will contain the total amount to debit per batch for checksum total.
         self.schema = schema
         self.msg_id = config.get('msg_id',make_msg_id())[:35]
+        self.export_result_nb_of_txs = 0
+        self.export_result_ctrl_sum_total = 0
         self.clean = clean
 
         config_result = self.check_config(config)
@@ -94,6 +96,9 @@ class SepaPaymentInitn:
             from xml.dom import minidom
             out_minidom = minidom.parseString(out)
             out = out_minidom.toprettyxml(encoding="utf-8")
+
+        self.export_result_ctrl_sum_total = ctrl_sum_total
+        self.export_result_nb_of_txs = nb_of_txs_total
 
         if validate:
             try_valid_xml(out, self.schema)
