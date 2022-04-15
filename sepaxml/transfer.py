@@ -79,7 +79,7 @@ class SepaTransfer(SepaPaymentInitn):
         if not self._config['batch']:
             # Start building the non batch payment
             PmtInf_nodes = self._create_PmtInf_node()
-            PmtInf_nodes['PmtInfIdNode'].text = make_id(self._config.get('payment_info_id'), self._config['name'])
+            PmtInf_nodes['PmtInfIdNode'].text = make_id(self._config.get('payment_info_id', self._config['name']))
             PmtInf_nodes['PmtMtdNode'].text = "TRF"
             PmtInf_nodes['BtchBookgNode'].text = "false"
             PmtInf_nodes['NbOfTxsNode'].text = "1"
@@ -319,7 +319,7 @@ class SepaTransfer(SepaPaymentInitn):
         """
         for batch_meta, batch_nodes in self._batches.items():
             PmtInf_nodes = self._create_PmtInf_node()
-            PmtInf_nodes['PmtInfIdNode'].text = make_id(self._config.get('payment_info_id'), self._config['name'])
+            PmtInf_nodes['PmtInfIdNode'].text = make_id(self._config.get('payment_info_id', self._config['name']))
             PmtInf_nodes['PmtMtdNode'].text = "TRF"
             PmtInf_nodes['BtchBookgNode'].text = "true"
             if not self._config.get('domestic', False):
