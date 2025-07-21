@@ -1,8 +1,28 @@
+"""
+Copyright (c) 2017-2023 Raphael Michel and contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is furnished
+to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+"""
 import datetime
 import xml.etree.ElementTree as ET
 
 from .shared import SepaPaymentInitn
-from .utils import int_to_decimal_str, make_id
+from .utils import ADDRESS_MAPPING, int_to_decimal_str, make_id
 
 
 class SepaTransfer(SepaPaymentInitn):
@@ -11,7 +31,7 @@ class SepaTransfer(SepaPaymentInitn):
     """
     root_el = "CstmrCdtTrfInitn"
 
-    def __init__(self, config, schema="pain.001.003.03", clean=True):
+    def __init__(self, config, schema="pain.001.001.03", clean=True):
         super().__init__(config, schema, clean)
 
     def check_config(self, config):
@@ -94,6 +114,17 @@ class SepaTransfer(SepaPaymentInitn):
                 del PmtInf_nodes['ReqdExctnDtNode']
 
             PmtInf_nodes['Nm_Dbtr_Node'].text = self._config['name']
+            if payment.get('address', {}):
+                for d, n in ADDRESS_MAPPING:
+                    if self._config['address'].get(d):
+                        n = ET.Element(n)
+                        n.text = self._config['address'][d]
+                        PmtInf_nodes['PstlAdr_Dbtr_Node'].append(n)
+                for line in self._config.get('lines', []):
+                    n = ET.Element('AdrLine')
+                    n.text = line
+                    PmtInf_nodes['PstlAdr_Dbtr_Node'].append(n)
+
             PmtInf_nodes['IBAN_DbtrAcct_Node'].text = self._config['IBAN']
             if 'BIC' in self._config:
                 PmtInf_nodes['BIC_DbtrAgt_Node'].text = self._config['BIC']
@@ -112,6 +143,17 @@ class SepaTransfer(SepaPaymentInitn):
         if bic:
             TX_nodes['BIC_CdtrAgt_Node'].text = payment['BIC']
         TX_nodes['Nm_Cdtr_Node'].text = payment['name']
+        if payment.get('address', {}):
+            for d, n in ADDRESS_MAPPING:
+                if payment['address'].get(d):
+                    n = ET.Element(n)
+                    n.text = payment['address'][d]
+                    TX_nodes['PstlAdr_Cdtr_Node'].append(n)
+            for line in payment['address'].get('lines', []):
+                n = ET.Element('AdrLine')
+                n.text = line
+                TX_nodes['PstlAdr_Cdtr_Node'].append(n)
+
         TX_nodes['IBAN_CdtrAcct_Node'].text = payment['IBAN']
         TX_nodes['UstrdNode'].text = payment['description']
 
@@ -172,6 +214,7 @@ class SepaTransfer(SepaPaymentInitn):
 
         ED['DbtrNode'] = ET.Element("Dbtr")
         ED['Nm_Dbtr_Node'] = ET.Element("Nm")
+        ED['PstlAdr_Dbtr_Node'] = ET.Element("PstlAdr")
         ED['DbtrAcctNode'] = ET.Element("DbtrAcct")
         ED['Id_DbtrAcct_Node'] = ET.Element("Id")
         ED['IBAN_DbtrAcct_Node'] = ET.Element("IBAN")
@@ -195,6 +238,7 @@ class SepaTransfer(SepaPaymentInitn):
         ED['InstdAmtNode'] = ET.Element("InstdAmt")
         ED['CdtrNode'] = ET.Element("Cdtr")
         ED['Nm_Cdtr_Node'] = ET.Element("Nm")
+        ED['PstlAdr_Cdtr_Node'] = ET.Element("PstlAdr")
         ED['CdtrAgtNode'] = ET.Element("CdtrAgt")
         ED['FinInstnId_CdtrAgt_Node'] = ET.Element("FinInstnId")
         if bic:
@@ -225,6 +269,8 @@ class SepaTransfer(SepaPaymentInitn):
             PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['ReqdExctnDtNode'])
 
         PmtInf_nodes['DbtrNode'].append(PmtInf_nodes['Nm_Dbtr_Node'])
+        if "PstlAdr_Dbtr_Node" in TX_nodes:
+            PmtInf_nodes['DbtrNode'].append(TX_nodes['PstlAdr_Dbtr_Node'])
         PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['DbtrNode'])
 
         PmtInf_nodes['Id_DbtrAcct_Node'].append(PmtInf_nodes['IBAN_DbtrAcct_Node'])
@@ -250,6 +296,9 @@ class SepaTransfer(SepaPaymentInitn):
             TX_nodes['CdtTrfTxInfNode'].append(TX_nodes['CdtrAgtNode'])
 
         TX_nodes['CdtrNode'].append(TX_nodes['Nm_Cdtr_Node'])
+        if TX_nodes['PstlAdr_Cdtr_Node']:
+            TX_nodes['CdtrNode'].append(TX_nodes['PstlAdr_Cdtr_Node'])
+
         TX_nodes['CdtTrfTxInfNode'].append(TX_nodes['CdtrNode'])
 
         TX_nodes['Id_CdtrAcct_Node'].append(TX_nodes['IBAN_CdtrAcct_Node'])
@@ -280,6 +329,8 @@ class SepaTransfer(SepaPaymentInitn):
             TX_nodes['CdtTrfTxInfNode'].append(TX_nodes['CdtrAgtNode'])
 
         TX_nodes['CdtrNode'].append(TX_nodes['Nm_Cdtr_Node'])
+        if TX_nodes['PstlAdr_Cdtr_Node']:
+            TX_nodes['CdtrNode'].append(TX_nodes['PstlAdr_Cdtr_Node'])
         TX_nodes['CdtTrfTxInfNode'].append(TX_nodes['CdtrNode'])
 
         TX_nodes['Id_CdtrAcct_Node'].append(TX_nodes['IBAN_CdtrAcct_Node'])
@@ -330,6 +381,16 @@ class SepaTransfer(SepaPaymentInitn):
             else:
                 del PmtInf_nodes['ReqdExctnDtNode']
             PmtInf_nodes['Nm_Dbtr_Node'].text = self._config['name']
+            if self._config.get('address', {}):
+                for d, n in ADDRESS_MAPPING:
+                    if self._config['address'].get(d):
+                        n = ET.Element(n)
+                        n.text = self._config['address'][d]
+                        PmtInf_nodes['PstlAdr_Dbtr_Node'].append(n)
+                for line in self._config['address'].get('lines', []):
+                    n = ET.Element('AdrLine')
+                    n.text = line
+                    PmtInf_nodes['PstlAdr_Dbtr_Node'].append(n)
             PmtInf_nodes['IBAN_DbtrAcct_Node'].text = self._config['IBAN']
 
             if 'BIC' in self._config:
@@ -354,6 +415,8 @@ class SepaTransfer(SepaPaymentInitn):
                 PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['ReqdExctnDtNode'])
 
             PmtInf_nodes['DbtrNode'].append(PmtInf_nodes['Nm_Dbtr_Node'])
+            if PmtInf_nodes['PstlAdr_Dbtr_Node']:
+                PmtInf_nodes['DbtrNode'].append(PmtInf_nodes['PstlAdr_Dbtr_Node'])
             PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['DbtrNode'])
 
             PmtInf_nodes['Id_DbtrAcct_Node'].append(PmtInf_nodes['IBAN_DbtrAcct_Node'])

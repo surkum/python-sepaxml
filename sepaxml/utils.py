@@ -1,3 +1,25 @@
+"""
+Copyright (c) 2014 Congressus, The Netherlands
+Copyright (c) 2017-2023 Raphael Michel and contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is furnished
+to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+"""
+import datetime
 import hashlib
 import random
 import re
@@ -43,7 +65,7 @@ def make_msg_id():
     @return: string consisting of timestamp, -, random value
     """
     random_string = get_rand_string(12)
-    timestamp = time.strftime("%Y%m%d%I%M%S")
+    timestamp = datetime.datetime.now().strftime("%Y%m%d%I%M%S")
     msg_id = timestamp + "-" + random_string
     return msg_id
 
@@ -87,3 +109,16 @@ def decimal_str_to_int(decimal_string):
     int_string = decimal_string.replace('.', '')
     int_string = int_string.lstrip('0')
     return int(int_string)
+
+
+ADDRESS_MAPPING = (
+    ("address_type", "AdrTp"),
+    ("department", "Dept"),
+    ("subdepartment", "SubDept"),
+    ("street_name", "StrtNm"),
+    ("building_number", "BldgNb"),
+    ("postcode", "PstCd"),
+    ("town", "TwnNm"),
+    ("country_subdivision", "CtrySubDvsn"),
+    ("country", "Ctry"),
+)
